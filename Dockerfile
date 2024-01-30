@@ -38,7 +38,7 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 
 # Final stage for app image
-FROM base
+FROM build
 
 # Install packages needed for deployment
 RUN apt-get update -qq && \
