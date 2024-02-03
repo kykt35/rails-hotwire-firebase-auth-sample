@@ -36,3 +36,8 @@
 
 /pgsql-data
 /vendor/bundle
+
+/app/javascript/env/env_dev.js
+/app/javascript/env/env_prod.js
+
+/service_account.json
