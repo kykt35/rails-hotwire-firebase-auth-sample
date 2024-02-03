@@ -11,6 +11,8 @@
   </head>
 
   <body>
-    <%= yield %>
+    <div data-controller="auth" <%= "data-auth-require_auth-value=#{@require_auth || false} data-auth-uid-value=#{@uid}" %>>
+      <%= yield %>
+    </div>
   </body>
 </html>
