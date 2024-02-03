@@ -1,1 +1,17 @@
 <div>Top Page</div>
+  <% #actionに:preventをつけるとpreventDefault()される %>
+  <%= form_with local: false, data: { controller: "auth", action: "submit->auth#loginWithEmailAndPassword:prevent" } do |f| %>
+    <div>
+      <%= f.text_field :email, placeholder: "email", data: { auth_target: "email"} %>
+    </div>
+    <div>
+      <%= f.password_field :password, placeholder: "password", data: { auth_target: "password"} %>
+    </div>
+    <div>
+      <%= f.submit 'Login' %>
+    </div>
+  <% end %>
+  <br />
+  <button data-action="click->auth#logout">
+    Logout
+  </button>
