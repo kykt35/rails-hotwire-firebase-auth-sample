@@ -1,9 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 import { initializeApp, getApp } from "firebase/app"
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth"
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth"
 import { firebaseConfig } from "env"
 
-let currentUser = null;
+let idToken = null;
 let initialized = false;
 
 // Connects to data-controller="auth"
@@ -21,15 +21,15 @@ export default class extends Controller {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
+    onAuthStateChanged(auth, async (user) => {
+      idToken = await user.getIdToken();
       // 認証必要ないページ
       if(!this.requireAuthValue) return;
 
       // 認証必要なページで認証情報が成功している場合
       if(user && this.uidValue == user.uid) return;
 
-      // 認証チェック中
+      // 認証チェック表示、再リクエスト
       if(user && this.uidValue == "") {
         const path = location.pathname;
         Turbo.visit(path, { action: "replace" });
@@ -37,6 +37,7 @@ export default class extends Controller {
       }
 
       // 認証必要なページで認証失敗している
+      // ログインページにリダイレクト
       Turbo.visit("/", { action: "replace" });
     });
 
@@ -69,13 +70,11 @@ export default class extends Controller {
 
   registerBeforeFetchEvent() {
     document.addEventListener("turbo:before-fetch-request", (event) => {
-      if(currentUser == null) return;
+      if(idToken == null) return;
 
-      const idToken = currentUser.accessToken;
       event.preventDefault();
       event.detail.fetchOptions.headers["Authorization"] =  "Bearer " + idToken;
       event.detail.resume();
-
     });
   }
 }
