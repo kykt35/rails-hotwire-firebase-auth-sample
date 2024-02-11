@@ -22,17 +22,17 @@ export default class extends Controller {
     const auth = getAuth(app);
 
     onAuthStateChanged(auth, async (user) => {
-      idToken = await user.getIdToken();
-      // 認証必要ないページ
-      if(!this.requireAuthValue) return;
+      if(user) {
+        idToken = await user.getIdToken();
+      }
 
-      // 認証必要なページで認証情報が成功している場合
-      if(user && this.uidValue == user.uid) return;
+      // 認証必要ないページ
+      // 認証必要なページで認証情報が成功している場合は後の処理を抜ける
+      if(!this.requireAuthValue || user && this.uidValue == user.uid) return;
 
       // 認証チェック表示、再リクエスト
       if(user && this.uidValue == "") {
-        const path = location.pathname;
-        Turbo.visit(path, { action: "replace" });
+        Turbo.visit( location.pathname, { action: "replace" });
         return;
       }
 
@@ -41,7 +41,13 @@ export default class extends Controller {
       Turbo.visit("/", { action: "replace" });
     });
 
-    this.registerBeforeFetchEvent();
+    document.addEventListener("turbo:before-fetch-request", (event) => {
+      if(idToken == null) return;
+
+      event.preventDefault();
+      event.detail.fetchOptions.headers["Authorization"] =  "Bearer " + idToken;
+      event.detail.resume();
+    });
     initialized = true;
   }
 
@@ -66,15 +72,5 @@ export default class extends Controller {
     } catch (error) {
       console.log("logout error", error)
     }
-  }
-
-  registerBeforeFetchEvent() {
-    document.addEventListener("turbo:before-fetch-request", (event) => {
-      if(idToken == null) return;
-
-      event.preventDefault();
-      event.detail.fetchOptions.headers["Authorization"] =  "Bearer " + idToken;
-      event.detail.resume();
-    });
   }
 }
